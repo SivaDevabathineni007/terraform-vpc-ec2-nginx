@@ -1,3 +1,4 @@
+
 data "aws_ami" "al2023" {
   most_recent = true
   owners      = ["137112412989"]
@@ -31,20 +32,23 @@ resource "aws_security_group" "http" {
   }
 }
 
-resource "aws_instance" "web" {
-  ami                         = data.aws_ami.al2023.id
-  instance_type               = var.instance_type
-  subnet_id                   = var.subnet_id
-  associate_public_ip_address = true
-  vpc_security_group_ids      = [aws_security_group.http.id]
-  user_data                   = var.enable_nginx ? <<-EOT
+locals {
+  nginx_user_data = <<-EOT
 #!/bin/bash
 dnf update -y
 dnf install -y nginx
 systemctl enable nginx
 systemctl start nginx
 EOT
-: null
+}
+
+resource "aws_instance" "web" {
+  ami                         = data.aws_ami.al2023.id
+  instance_type               = var.instance_type
+  subnet_id                   = var.subnet_id
+  associate_public_ip_address = true
+  vpc_security_group_ids      = [aws_security_group.http.id]
+  user_data                   = var.enable_nginx ? local.nginx_user_data : null
   tags = {
     Name = "${var.name}-web"
   }
