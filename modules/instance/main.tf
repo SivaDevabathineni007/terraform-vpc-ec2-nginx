@@ -1,4 +1,3 @@
-
 data "aws_ami" "al2023" {
   most_recent = true
   owners      = ["137112412989"]
